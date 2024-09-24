@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -27,12 +28,56 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
   <title>cbt_inbal</title>
   <link rel="manifest" href="manifest.json">
 </head>
+
 <body>
+  <script>
+    function triggerCacheCheck() {
+      console.log("Cache check triggered from Flutter.");
+
+      if ('serviceWorker' in navigator) {
+        console.log('Service worker supported. Starting cache check...');
+        if (window.localStorage.getItem('cacheRefreshed')) {
+          console.log('Cache refresh already completed. Skipping refresh.');
+          return;
+        }
+
+        // Hardcoded version
+        const hardcodedVersion = "1.0.0+2";
+        const currentVersion = window.localStorage.getItem('version');
+
+        console.log('Current version:', currentVersion);
+        console.log('Hardcoded version:', hardcodedVersion);
+
+        if (currentVersion && currentVersion !== hardcodedVersion) {
+          console.log('Version mismatch. Clearing cache and refreshing...');
+          Promise.all([
+            caches.delete('flutter-app-manifest'),
+            caches.delete('flutter-temp-cache'),
+            caches.delete('flutter-app-cache')
+          ]).then(() => {
+            window.localStorage.setItem('cacheRefreshed', 'true');
+            // window.location.reload(); // Force a page refresh
+            setTimeout(() => {
+              console.log('timeout for refresh');
+              window.location.href = window.location.href; // Or window.location.reload();
+            }, 1000);
+          });
+        } else {
+          console.log('No cache clearing needed.');
+          window.localStorage.setItem('version', hardcodedVersion);
+          window.localStorage.removeItem('cacheRefreshed'); // Clear the marker if no refresh is needed
+        }
+      } else {
+        console.log('Service worker unsupported');
+      }
+    }
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
+
 </html>
